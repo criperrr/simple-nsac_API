@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "@types/node": "^25.2.0",
+    "bcryptjs": "^3.0.3",
+    "cheerio": "^1.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "object-hash": "^3.0.0",
+    "pg": "^8.16.3",
+    "serverless-http": "^4.0.0"
+  },
+  "scripts": {
+    "dev": "npx tsx --watch ./src/app.ts --serverless-mode=false",
+    "dev-serverless": "ntl dev",
+    "build": "npx esbuild src/app.ts --bundle --platform=node --target=node22 --outfile=./index.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cheerio": "^0.22.35",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/object-hash": "^3.0.6",
+    "@types/pg": "^8.16.0",
+    "tsx": "^4.20.6"
+  }
+}

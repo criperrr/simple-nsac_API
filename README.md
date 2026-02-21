@@ -1,0 +1,1 @@
+Recreating https://github.com/criperrr/pf-API but just for scrapping, zero authentication or nosense
