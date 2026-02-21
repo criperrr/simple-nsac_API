@@ -11,6 +11,9 @@ import { AppError } from "../types/ApiError.js";
 
 import { ApiResponse, QueryFilter } from "../types/index.js";
 import { ApiBodyRequest } from "../types/common/api.js";
+import { NsacUser } from "../models/nsacUser.js";
+import { hash } from "node:crypto";
+import { hashSync } from "bcryptjs";
 
 export async function getApiGrades(
     req: Request<{}, ApiResponse<any>, ApiBodyRequest, QueryFilter>,
@@ -26,7 +29,7 @@ export async function getApiGrades(
         // 2) If we don't have a valid cookie yet, try to find the NSAC account by email
         if (email && password) {
             try {
-                const account = await queryOne<any>(
+                const account = await queryOne<NsacUser>(
                     `SELECT id_nsacaccount, password FROM NsacAccount WHERE email = ?`,
                     [email],
                     db,
@@ -39,7 +42,7 @@ export async function getApiGrades(
                             // password matches stored password -> try to use stored cookie for that account
                             try {
                                 const tokenRow = await queryOne<any>(
-                                    `SELECT cookieString FROM ApiToken WHERE id_nsacaccount = ? ORDER BY id_token DESC LIMIT 1`,
+                                    `SELECT nsac_crypted_cookies FROM Users WHERE id_nsacaccount = ?`,
                                     [account.id_nsacaccount],
                                     db,
                                 );
@@ -64,6 +67,13 @@ export async function getApiGrades(
                     } catch (e) {
                         // decrypt failed: fallback to login below
                     }
+                } else {
+                    const cookieString = await login(email, password);
+                    queryOne<any>(
+                        "INSERT INTO Users(nsac_email, nsac_hash_pass, nsac_crypted_cookies) VALUES (?, ?, ?)",
+                        [email, hashSync(password), encrypt(cookieString)],
+                        db,
+                    );
                 }
             } catch (err) {
                 // no account found or db error -> fallback to login

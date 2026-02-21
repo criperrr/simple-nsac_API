@@ -1,17 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "../types/ApiError.js";
+import verifyEmptyFields from "../utils/emptyFields.js";
+import { ApiBodyRequest } from "../types/common/api.js";
 
 export async function checkBody(req: Request, _: Response, next: NextFunction) {
     try {
         if (!req.body) {
             throw new AppError("Missing request body", 400, "MISSING_REQUEST_BODY");
         }
-        if(!req.body.email){
-            throw new AppError("Missing Nsac email field in body", 401, "MISSING_NSAC_EMAIL");
-        }
-        if(!req.body.pass){
-            throw new AppError("Missing Nsac pass field in body", 401, "MISSING_NSAC_PASSWORD");
-        }
+        const body = req.body as ApiBodyRequest;
+        const email = body.email;
+        const pass = body.password;
+        verifyEmptyFields({ email, pass });
         next();
     } catch (err: any) {
         next(err);
