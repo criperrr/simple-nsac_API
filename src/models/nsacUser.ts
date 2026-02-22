@@ -1,6 +1,6 @@
 export type NsacUser = {
-    id_nsacaccount: number;
-    email: string;
-    password: string;
-    cookiestring?: string;
+    user_id: number;
+    nsac_email: string;
+    nsac_hash_pass: string;
+    nsac_crypted_cookies?: string;
 };

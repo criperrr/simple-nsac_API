@@ -12,7 +12,6 @@ import { AppError } from "../types/ApiError.js";
 import { ApiResponse, QueryFilter } from "../types/index.js";
 import { ApiBodyRequest } from "../types/common/api.js";
 import { NsacUser } from "../models/nsacUser.js";
-import { hash } from "node:crypto";
 import { hashSync } from "bcryptjs";
 
 export async function getApiGrades(
@@ -30,23 +29,20 @@ export async function getApiGrades(
         if (email && password) {
             try {
                 const account = await queryOne<NsacUser>(
-                    `SELECT id_nsacaccount, password FROM NsacAccount WHERE email = ?`,
+                    `SELECT user_id, nsac_hash_pass FROM Users WHERE nsac_email = ?`,
                     [email],
-                    db,
                 );
-
-                if (account && account.password) {
+                if (account && account.nsac_hash_pass) {
                     try {
-                        const decryptedPass = decrypt(account.password);
-                        if (decryptedPass === password) {
+                        const passHash = hashSync(password);
+                        if (passHash === account.nsac_hash_pass) {
                             // password matches stored password -> try to use stored cookie for that account
                             try {
                                 const tokenRow = await queryOne<any>(
-                                    `SELECT nsac_crypted_cookies FROM Users WHERE id_nsacaccount = ?`,
-                                    [account.id_nsacaccount],
-                                    db,
+                                    `SELECT nsac_crypted_cookies FROM Users WHERE user_id = ?`,
+                                    [account.user_id],
                                 );
-                                const enc = tokenRow?.cookieString ?? tokenRow?.cookiestring;
+                                const enc = tokenRow?.nsac_crypted_cookies;
                                 if (enc) {
                                     try {
                                         decryptedCookies = decrypt(enc);
@@ -55,28 +51,22 @@ export async function getApiGrades(
                                     }
                                 }
                             } catch (e) {
-                                // ignore and fallback to login
+                                console.log(e);
                             }
-                        } else {
-                            throw new AppError(
-                                "Authentication with db failed.",
-                                401,
-                                "UNAUTHORIZED",
-                            );
                         }
                     } catch (e) {
-                        // decrypt failed: fallback to login below
+                        console.log(e);
                     }
-                } else {
+                } else if (!account) {
+                    console.log("Usuario novo!");
                     const cookieString = await login(email, password);
-                    queryOne<any>(
+                    await queryOne<any>(
                         "INSERT INTO Users(nsac_email, nsac_hash_pass, nsac_crypted_cookies) VALUES (?, ?, ?)",
                         [email, hashSync(password), encrypt(cookieString)],
-                        db,
                     );
                 }
             } catch (err) {
-                // no account found or db error -> fallback to login
+                console.log(err);
             }
         }
 
@@ -94,9 +84,8 @@ export async function getApiGrades(
 
             try {
                 const result = await queryOne<any>(
-                    "UPDATE Users SET nsac_crypted_cookies=?",
+                    "UPDATE Users SET nsac_crypted_cookies=? WHERE user_id=1",
                     [encrypt(newCookie)],
-                    db,
                 );
             } catch (e) {}
         }

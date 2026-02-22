@@ -1,11 +1,13 @@
 const useServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME; // Auto injected env variable from AWS
 
 import e from "express";
-if (!useServerless) require("dotenv").config(); // sorry
 import nsacRoutes from "./routes/v1/nsacRoutes.js";
+
+if (!useServerless) await import('dotenv/config');
 import serverless from "serverless-http";
 import cors from "cors";
 import { globalErrorHandling } from "./utils/errorHandler.js";
+import { ensureDbCreated } from "./utils/database.js";
 const app = e();
 
 app.set("query parser", "extended");
@@ -18,7 +20,7 @@ if (!useServerless) {
     app.listen(port, async () => {
         console.log(`RUNNING at ${port}!`);
         // console.log("Trying to connect to PostgreSQL database and ensure all tables are created!");
-        // await ensureDbCreated();
+        await ensureDbCreated();
         // if you want to use function above import ensureDbCreated from database.ts
     });
 }
