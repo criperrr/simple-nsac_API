@@ -66,7 +66,6 @@ export async function queryOne<T>(sql: string, params: Array<any> = []): Promise
             if (err) {
                 reject(err);
             } else {
-                console.log(row);
                 resolve(row as T);
             }
         });
