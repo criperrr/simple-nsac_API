@@ -22,7 +22,7 @@ export async function verifyCookie(
             return token;
         } else {
             throw new AppError(
-                "Invalid db cookie + invalid email and password",
+                "Invalid db cookie and invalid email and password",
                 401,
                 "NSAC_UNAUTHORIZED",
             );

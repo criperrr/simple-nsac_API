@@ -9,5 +9,6 @@ const router = Router();
 router.use("/accounts", checkBody);
 
 router.get("/grades", nsacController.getNsacGrades);
+router.post("/accounts", nsacController.createAccount);
 
 export default router;

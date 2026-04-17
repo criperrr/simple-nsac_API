@@ -13,9 +13,6 @@ export async function checkBody(req: Request, _: Response, next: NextFunction) {
             );
         }
         const body = req.body as ApiBodyRequest;
-        const email = body.email;
-        const pass = body.password;
-        verifyEmptyFields({ email, pass });
         next();
     } catch (err: any) {
         next(err);

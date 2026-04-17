@@ -82,9 +82,8 @@ function extractAndCleanGrade(pollutedString: string) {
 
 async function fetchBoletimDOM(
     logToken: string, // Token de login
-    APIToken?: string, // Token da API
 ): Promise<cheerio.CheerioAPI> {
-    const tokenResult = await verifyCookie(logToken, APIToken); // Se o logToken for invalido mas o APIToken n, ent ele retorna um logToken novo
+    const tokenResult = await verifyCookie(logToken);
 
     const response = await fetch("http://200.145.153.1/nsac/aluno/boletim", {
         credentials: "include",
@@ -102,11 +101,10 @@ async function fetchBoletimDOM(
 
 export async function getGrades(
     logToken: string,
-    APIToken?: string,
     year?: number,
 ): Promise<AllYearsResponse> {
     const MAX_BIMESTERS = 4;
-    const $ = await fetchBoletimDOM(logToken, APIToken);
+    const $ = await fetchBoletimDOM(logToken);
 
     const tables = $("div.box.box-primary").toArray().reverse();
     const userCurrentYear = tables.length;

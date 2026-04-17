@@ -1,6 +1,7 @@
 import crypto from "crypto";
 const cryptoAlgorithm = "aes-256-cbc";
 import "dotenv/config";
+import { InternalError } from "../errors/ApiError.js";
 
 const secret = process.env.ENCRYPTIONKEY as string;
 if (!secret) throw new Error("No key defined.");
@@ -21,13 +22,13 @@ export function decrypt(message: string): string {
     const parts = message.split(":");
 
     if (parts.length !== 2) {
-        throw new Error("Invalid data format: expected 'crypted:iv'");
+        throw new InternalError("Invalid data format: expected 'crypted:iv'");
     }
 
     const [crypted, ivHex] = parts;
 
     if (!crypted || !ivHex) {
-        throw new Error("Invalid data: crypted or iv part is empty");
+        throw new InternalError("Invalid data: crypted or iv part is empty");
     }
 
     const iv = Buffer.from(ivHex, "hex");
@@ -40,13 +41,18 @@ export function decrypt(message: string): string {
         decrypted += decipher.final("utf8");
     } catch (error) {
         console.error("Decryption failed:", error);
-        throw new Error("Decryption failed due to invalid key, IV, or corrupted data.");
+        throw new InternalError(
+            "Decryption failed due to invalid key, IV, or corrupted data.",
+        );
     }
 
     return decrypted;
 }
 
-export function generateRandomString(length: number, upperCase: boolean = true) {
+export function generateRandomString(
+    length: number,
+    upperCase: boolean = true,
+) {
     return upperCase
         ? crypto.randomBytes(length).toString("hex").toUpperCase()
         : crypto.randomBytes(length).toString("hex");

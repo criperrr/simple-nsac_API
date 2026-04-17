@@ -17,11 +17,6 @@ export interface AllYearsResponse {
     data: YearInfo[];
 }
 
-
-
-
-
-
 // Data structures
 export type RecoveryStatusCode = "SAT" | "INS" | "NC" | "NAC";
 export type RecoveryMessage =
@@ -44,7 +39,7 @@ export interface ClassBiInformation {
 }
 
 export interface UnifiedBimesterData {
-    bimester: number;
+    bimester: 1 | 2 | 3 | 4;
     personal: PersonalBiInformation;
     class: ClassBiInformation;
 }
@@ -78,4 +73,3 @@ export interface BoletimData {
     yearCount: number;
     yearsInfo: Array<YearInfo>;
 }
-

@@ -10,19 +10,27 @@ CREATE TYPE recovery_message_status AS ENUM (
 CREATE TABLE IF NOT EXISTS Accounts (
     user_id       SERIAL PRIMARY KEY,
     nsac_email    TEXT        NOT NULL UNIQUE,
-    nsac_hash_pass TEXT       NOT NULL,
+    nsac_pass TEXT       NOT NULL,
+    nsac_hash_pass TEXT        NOT NULL,
     nsac_crypted_cookies TEXT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ApiTokens (
+    id_token SERIAL PRIMARY KEY,
+    id_user  INTEGER     NOT NULL,
+    token    TEXT        NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    FOREIGN KEY (id_user) REFERENCES Accounts(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS SchoolYears (
     id_year               SERIAL PRIMARY KEY,
     id_user               INTEGER     NOT NULL,
     year                  INTEGER     NOT NULL,
-    averageUserGrade      NUMERIC(5,2),
-    averageClassGrade     NUMERIC(5,2),
-    totalAbsences         INTEGER,
+    status                TEXT        NOT NULL,
+    title                 TEXT        NOT NULL,
     FOREIGN KEY (id_user) REFERENCES Accounts(user_id) ON DELETE CASCADE,
     UNIQUE(id_user, year)
 );

@@ -4,9 +4,9 @@ import { failure, singleError } from "../utils/responseHelpers.js";
 
 export function globalErrorHandling(
     err: Error,
-    req: Request,
+    _: Request,
     res: Response,
-    next: NextFunction,
+    __: NextFunction,
 ) {
     if (err instanceof AppError) {
         return res
