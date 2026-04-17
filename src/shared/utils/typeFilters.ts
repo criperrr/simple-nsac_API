@@ -1,11 +1,14 @@
-import { AppError } from "../types/ApiError.js";
-import { BooleanFilter, NumberFilter, StringFilter } from "../types/index.js";
+import { AppError } from "../errors/ApiError.js";
+import { BooleanFilter, NumberFilter, StringFilter } from "../types/filters.js";
 
 function removerAcentos(str: string): string {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function numericFilter(value: number, filter: NumberFilter | Record<"0", number>): boolean {
+function numericFilter(
+    value: number,
+    filter: NumberFilter | Record<"0", number>,
+): boolean {
     if ("0" in filter) {
         return value === filter["0"];
     }
@@ -20,20 +23,31 @@ function numericFilter(value: number, filter: NumberFilter | Record<"0", number>
     return true;
 }
 
-function stringFilter(value: string, filter: StringFilter | Record<"0", string>): boolean {
+function stringFilter(
+    value: string,
+    filter: StringFilter | Record<"0", string>,
+): boolean {
     const parsedValue = removerAcentos(value).toLocaleLowerCase();
     if ("0" in filter) {
         return value === filter["0"];
     }
 
     if (filter.eq !== undefined && parsedValue !== filter.eq) return false;
-    if (filter.contains !== undefined && !parsedValue.includes(filter.contains)) return false;
-    if (filter.startsWith !== undefined && !parsedValue.startsWith(filter.startsWith)) return false;
+    if (filter.contains !== undefined && !parsedValue.includes(filter.contains))
+        return false;
+    if (
+        filter.startsWith !== undefined &&
+        !parsedValue.startsWith(filter.startsWith)
+    )
+        return false;
 
     return true;
 }
 
-function booleanFilter(rowValue: boolean, filter: BooleanFilter | boolean): boolean {
+function booleanFilter(
+    rowValue: boolean,
+    filter: BooleanFilter | boolean,
+): boolean {
     if (typeof filter === "boolean") {
         return rowValue === filter;
     }
@@ -59,7 +73,7 @@ function parseBoolean(value: any): boolean {
 
 export function checkBooleanFilters(
     value: boolean,
-    filters: BooleanFilter | boolean | string | string[]
+    filters: BooleanFilter | boolean | string | string[],
 ): boolean {
     const sanitizedValue = parseBoolean(value);
 
@@ -73,7 +87,8 @@ export function checkBooleanFilters(
 
     if (Array.isArray(filters)) {
         return filters.some((f) => {
-            if (typeof f === "string") return booleanFilter(sanitizedValue, parseBoolean(f));
+            if (typeof f === "string")
+                return booleanFilter(sanitizedValue, parseBoolean(f));
             return booleanFilter(sanitizedValue, f as BooleanFilter);
         });
     }
@@ -96,12 +111,14 @@ export function checkBooleanFilters(
 
 export function checkStringFilters(
     value: string,
-    filters: StringFilter | Record<"0", string> | string | string[]
+    filters: StringFilter | Record<"0", string> | string | string[],
 ): boolean {
     if (typeof filters === "string" || Array.isArray(filters)) {
         const rawArray = Array.isArray(filters) ? filters : [filters];
         const cleanValues = rawArray
-            .flatMap((item) => (typeof item === "string" ? item.split(",") : [item]))
+            .flatMap((item) =>
+                typeof item === "string" ? item.split(",") : [item],
+            )
             .map((val) => val.trim())
             .filter((val) => val !== ""); // Remove o lixo das vírgulas duplas
 
@@ -112,10 +129,14 @@ export function checkStringFilters(
     }
     const flattenedFilters = Object.entries(filters)
         .map(([key, value]) => {
-            const splitValues = [removerAcentos(value).toLocaleLowerCase()].flat(Infinity);
+            const splitValues = [
+                removerAcentos(value).toLocaleLowerCase(),
+            ].flat(Infinity);
             console.log(splitValues);
             const flatValues = splitValues
-                .map((val) => (typeof val === "string" ? val.trim().split(",") : val))
+                .map((val) =>
+                    typeof val === "string" ? val.trim().split(",") : val,
+                )
                 .flat(Infinity);
             console.log(flatValues);
             return flatValues.map((val) => {
@@ -130,7 +151,7 @@ export function checkStringFilters(
 
 export function checkNumberFilters(
     value: number | string,
-    filters: NumberFilter | Record<"0", number>
+    filters: NumberFilter | Record<"0", number>,
 ): boolean {
     const flattenedFilters = Object.entries(filters)
         .map(([key, value]) => {
@@ -138,13 +159,17 @@ export function checkNumberFilters(
 
             const flatValues = splitValues
                 .map((val: number | string) =>
-                    typeof val === "string" ? val.trim().split(",") : val
+                    typeof val === "string" ? val.trim().split(",") : val,
                 )
                 .flat(Infinity)
                 .map((filter) => {
                     const numberValue = Number(filter);
                     if (Number.isNaN(numberValue))
-                        throw new AppError("Invalid input parameters", 400, "INVALID_PARAMS");
+                        throw new AppError(
+                            "Invalid input parameters",
+                            400,
+                            "INVALID_PARAMS",
+                        );
                     return numberValue;
                 });
 

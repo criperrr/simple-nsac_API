@@ -1,32 +1,16 @@
-const useServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME; // Auto injected env variable from AWS
-
-import e from "express";
-import nsacRoutes from "./routes/v1/nsacRoutes.js";
-
-if (!useServerless) await import('dotenv/config');
-import serverless from "serverless-http";
+import express from "express";
 import cors from "cors";
-import { globalErrorHandling } from "./utils/errorHandler.js";
-import { ensureDbCreated } from "./utils/database.js";
-const app = e();
+import { globalErrorHandling } from "./shared/middlewares/errorHandler.js";
+import nsacRoutes from "./modules/nsac-scrapping/nsac.routes.js";
 
-app.set("query parser", "extended");
-app.use(e.json());
-app.use(e.urlencoded({ extended: true }));
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-if (!useServerless) {
-    const port = process.env.PORT || 3000;
-    app.listen(port, async () => {
-        console.log(`RUNNING at ${port}!`);
-        // console.log("Trying to connect to PostgreSQL database and ensure all tables are created!");
-        await ensureDbCreated();
-        // if you want to use function above import ensureDbCreated from database.ts
-    });
-}
-
-app.use("/api/nsac", nsacRoutes);
+app.use("/api/v1/nsac", nsacRoutes);
 
 app.use(globalErrorHandling);
 
-export const handler = serverless(app, { provider: "aws" });
+export default app; 

@@ -6,13 +6,13 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "serverless-http": "^4.0.0",
-    "sqlite3": "^5.1.7"
+    "pg": "^8.20.0",
+    "serverless-http": "^4.0.0"
   },
   "scripts": {
-    "dev": "npx tsx --watch ./src/app.ts",
+    "dev": "npx tsx --watch ./src/server.ts",
     "dev-serverless": "ntl dev",
-    "build": "npx esbuild src/app.ts --bundle --platform=node --target=node22 --outfile=./index.js"
+    "build": "npx esbuild src/server.ts --bundle --platform=node --target=node22 --outfile=./index.js"
   },
   "type": "module",
   "devDependencies": {
@@ -20,6 +20,7 @@
     "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/pg": "^8.20.0",
     "tsx": "^4.20.6"
   }
 }

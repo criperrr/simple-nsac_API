@@ -1,4 +1,4 @@
-import { ApiError } from "./index.js";
+import { ApiError } from "../types/api.js";
 
 export class AppError extends Error {
     public readonly HTTPCode: number;
@@ -11,6 +11,14 @@ export class AppError extends Error {
         this.field = field;
         this.errorCode = errorCode;
         Object.setPrototypeOf(this, AppError.prototype);
+    }
+}
+
+export class InternalError extends AppError {
+    constructor(debug?: string){
+        console.log(debug);
+        super('Internal App Error', 500, 'INTERNAL_APP_ERROR');
+        Object.setPrototypeOf(this, InternalError.prototype);
     }
 }
 

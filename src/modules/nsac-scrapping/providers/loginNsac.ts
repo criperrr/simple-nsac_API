@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { AppError } from "../types/ApiError.js";
+import { AppError } from "../../types/ApiError.js";
 
 interface Tokens {
     xsrf: string;
@@ -20,12 +20,16 @@ export async function getTokens(): Promise<Tokens> {
     });
 
     // Pego os cookies do header da response (cookie de sessão temporário)
-    const cookies = response.headers.getSetCookie().map((value) => value.split(";")[0]) as string[];
+    const cookies = response.headers
+        .getSetCookie()
+        .map((value) => value.split(";")[0]) as string[];
 
-    // Se não encontrado, lança uma exceção; isso pode ocorrer se o NSAC mudar algo no site, exigindo uma adaptação no código, 
+    // Se não encontrado, lança uma exceção; isso pode ocorrer se o NSAC mudar algo no site, exigindo uma adaptação no código,
     // OU se o site estiver desligado (o que pode acontecer depois da meia noite)
     if (cookies.length < 2 || !cookies[0] || !cookies[1]) {
-        throw new Error("Tokens de sessão (xsrf ou nsaconline) não encontrados na resposta.");
+        throw new Error(
+            "Tokens de sessão (xsrf ou nsaconline) não encontrados na resposta.",
+        );
     }
 
     // Captura o HTML; o PHP só devolve o HTML inteiro na resposta, no body.
@@ -38,7 +42,9 @@ export async function getTokens(): Promise<Tokens> {
     const hiddenToken = $('input[name="_token"]').val() as string | undefined; // Se retornar um undefined é pq o site do NSAC explodiu e mudou rota ou sla explodiu mesmo
 
     if (!hiddenToken) {
-        throw new Error("Token hidden (_token) não encontrado no HTML da página.");
+        throw new Error(
+            "Token hidden (_token) não encontrado no HTML da página.",
+        );
     }
 
     // Cookie pra evitar que o servidor identifique como ataque XSRF. Eles usam a técnica "Double Submit Cookie". Ele é enviado no header
@@ -95,5 +101,10 @@ export async function login(email: string, password: string): Promise<string> {
 
     if (responseLogin.status == 302 && responseTest.status == 200) {
         return newCookiesString;
-    } else throw new AppError("Wrong NSAC email or password", 401, "INVALID_NSAC_CREDENTIALS");
+    } else
+        throw new AppError(
+            "Wrong NSAC email or password",
+            401,
+            "INVALID_NSAC_CREDENTIALS",
+        );
 }

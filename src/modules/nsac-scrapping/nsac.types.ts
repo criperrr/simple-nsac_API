@@ -1,3 +1,28 @@
+// Requests
+export interface BasicNsacApiRequest {
+    email: string;
+    password: string;
+}
+
+// Responses
+export interface NsacAuthResponse {
+    message: string;
+    userId: string;
+    nsacAccountId: number;
+}
+
+export interface AllYearsResponse {
+    warning: boolean | string;
+    userCurrentYear: number;
+    data: YearInfo[];
+}
+
+
+
+
+
+
+// Data structures
 export type RecoveryStatusCode = "SAT" | "INS" | "NC" | "NAC";
 export type RecoveryMessage =
     | "Satisfatório"
@@ -53,3 +78,4 @@ export interface BoletimData {
     yearCount: number;
     yearsInfo: Array<YearInfo>;
 }
+
