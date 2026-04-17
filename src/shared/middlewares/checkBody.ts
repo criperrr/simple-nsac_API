@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "../types/ApiError.js";
+import { AppError } from "../errors/ApiError.js";
 import verifyEmptyFields from "../utils/emptyFields.js";
 import { ApiBodyRequest } from "../types/api.js";
 

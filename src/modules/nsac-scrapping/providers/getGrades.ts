@@ -11,7 +11,7 @@ import {
     UnifiedBimesterData,
     PersonalBiInformation,
     ClassBiInformation,
-} from "../../types/index.js";
+} from "../nsac.types.js";
 import { AnyNode } from "domhandler";
 interface BasicYearInfo {
     tittleLabel: string;

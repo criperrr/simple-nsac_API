@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import * as nsacController from "../../controllers/nsacController.js";
+import * as nsacController from "../nsac-scrapping/nsac.controller.js";
 
 import { checkBody } from "../../shared/middlewares/checkBody.js";
 

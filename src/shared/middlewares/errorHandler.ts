@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError, MultiAppErrors } from "../types/ApiError.js";
-import { failure, singleError } from "../../utils/responseHelpers.js";
+import { AppError, MultiAppErrors } from "../errors/ApiError.js";
+import { failure, singleError } from "../utils/responseHelpers.js";
 
 export function globalErrorHandling(
     err: Error,
