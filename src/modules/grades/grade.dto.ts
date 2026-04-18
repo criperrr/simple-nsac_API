@@ -1,21 +1,26 @@
-import { RecoveryMessage, RecoveryStatusCode } from "../nsac-scrapping/nsac.types.js";
+import {
+    RecoveryMessage,
+    RecoveryStatusCode,
+} from "../nsac-scrapping/nsac.types.js";
 
 export interface Grade {
-    id_grade:    number;
-    id_user:     number;
-    id_subject:  number;
+    id_grade: number;
+    id_user: number;
+    id_subject: number;
     id_bimester: number;
-    grade:       number | null;
+    grade: number | null;
     averageGrade: number | null;
-    statusRec:   RecoveryStatusCode;
-    recMessage:  RecoveryMessage;
-    approved:    boolean;
+    statusRec: RecoveryStatusCode;
+    recMessage: RecoveryMessage;
+    approved: boolean;
     bimester: 1 | 2 | 3 | 4;
-    recovered:   boolean | null;
+    recovered: boolean | null;
 }
 
-export interface CreateGradeDTO extends Omit<Grade, "id_grade" | "id_bimester"> {}
-
+export interface CreateGradeDTO extends Omit<
+    Grade,
+    "id_grade" | "id_bimester"
+> {}
 
 // Subject DTOs
 export interface Subject {
@@ -26,7 +31,6 @@ export interface Subject {
 }
 
 export interface CreateSubjectDTO extends Omit<Subject, "id_subject"> {}
-
 
 // SchoolYear DTOs
 export interface SchoolYear {

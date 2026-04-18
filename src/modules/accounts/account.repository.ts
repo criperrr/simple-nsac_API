@@ -25,3 +25,12 @@ export async function getUserByEmail(email: string): Promise<Account | null> {
         [email],
     );
 }
+
+export async function getUserByToken(token: string): Promise<Account | null> {
+    return await queryOne<Account>(
+        `SELECT a.* FROM Accounts a
+        JOIN ApiTokens t ON a.user_id = t.id_user
+        WHERE t.token = $1;`,
+        [token],
+    );
+}

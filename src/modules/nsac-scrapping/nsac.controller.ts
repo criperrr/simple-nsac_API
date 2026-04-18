@@ -1,16 +1,48 @@
 import { NextFunction, Request, Response } from "express";
 import { CreateAccountDTO, Account } from "../accounts/account.dto.js";
 import verifyEmptyFields from "../../shared/utils/emptyFields.js";
-import { createUser, getUserByEmail } from "../accounts/account.repository.js";
+import { createUser, getUserByEmail, getUserByToken } from "../accounts/account.repository.js";
 import { AppError } from "../../shared/errors/ApiError.js";
 import { login } from "./providers/loginNsac.js";
 import { verifyCookie } from "./providers/verifyCookie.js";
 import { success } from "../../shared/utils/responseHelpers.js";
 import { generateRandomString } from "../../shared/utils/crypto.js";
 import { createApiToken } from "../apitokens/apitokens.repository.js";
-import { insertScrappingData } from "../grades/grade.service.js";
+import { gradesDbToApi, insertScrappingData } from "../grades/grade.service.js";
+import { getGradesFromDb } from "../grades/grade.repository.js";
 
-export async function getNsacGrades(req: Request, res: Response) {}
+export async function getNsacGrades(
+    req: Request<{}, {}, { nsac_crypted_cookies: string }>,
+    res: Response,
+    next: NextFunction,
+) {
+    const { nsac_crypted_cookies } = req.body;
+    try {
+        if (!nsac_crypted_cookies) {
+            throw new AppError(
+                "Missing nsac_crypted_cookies in request body",
+                400,
+                "MISSING_FIELD",
+                "nsac_crypted_cookies",
+            );
+        }
+
+        const user = await getUserByToken(nsac_crypted_cookies);
+        if (!user) {
+            throw new AppError(
+                "Invalid nsac_crypted_cookies token",
+                401,
+                "INVALID_TOKEN",
+                "nsac_crypted_cookies",
+            );
+        }
+
+        const grades = await getGradesFromDb(user.user_id);
+        const gradesResponse = gradesDbToApi(grades);
+    } catch (e) {
+        next(e);
+    }
+}
 
 export async function createAccount(
     req: Request<{}, Account, CreateAccountDTO>,
