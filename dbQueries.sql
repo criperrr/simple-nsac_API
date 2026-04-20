@@ -1,3 +1,17 @@
+CREATE TYPE status_rec AS ENUM (
+    'SAT', 
+    'INS', 
+    'NC', 
+    'NAC'
+);
+
+CREATE TYPE recovery_message_status AS ENUM (
+    'Satisfatório',
+    'Insatisfatório',
+    'Não Compareceu',
+    'Não aconteceu'
+);
+
 CREATE TABLE IF NOT EXISTS SchoolYears (
     id_year               SERIAL PRIMARY KEY,
     year                  SMALLINT     NOT NULL,
