@@ -115,7 +115,7 @@ pool.on("error", (err) => {
 });
 
 pool.on("connect", () => {
-    console.log("Connected to PostgreSQL database");
+    // Connection successful - silent for now as it occurs on every connection attempt
 });
 
 export default pool;
@@ -124,9 +124,11 @@ export default pool;
 export async function runSql(
     sql: string,
     params: Array<any> = [],
-    client?: PoolClient
+    client?: PoolClient,
 ): Promise<number> {
-    const result = await (client ? client.query(sql, params) : pool.query(sql, params));
+    const result = await (client
+        ? client.query(sql, params)
+        : pool.query(sql, params));
     return result.rowCount ?? 0;
 }
 
@@ -134,9 +136,11 @@ export async function runSql(
 export async function queryOne<T extends QueryResultRow>(
     sql: string,
     params: Array<any> = [],
-    client?: PoolClient
+    client?: PoolClient,
 ): Promise<T | null> {
-    const result = await (client ? client.query<T>(sql, params) : pool.query<T>(sql, params));
+    const result = await (client
+        ? client.query<T>(sql, params)
+        : pool.query<T>(sql, params));
     return result.rows[0] ?? null;
 }
 
@@ -144,9 +148,11 @@ export async function queryOne<T extends QueryResultRow>(
 export async function getSql<T extends QueryResultRow>(
     sql: string,
     params: Array<any> = [],
-    client?: PoolClient
+    client?: PoolClient,
 ): Promise<T[]> {
-    const result = await (client ? client.query<T>(sql, params) : pool.query<T>(sql, params));
+    const result = await (client
+        ? client.query<T>(sql, params)
+        : pool.query<T>(sql, params));
     return result.rows;
 }
 
@@ -154,11 +160,13 @@ export async function getSql<T extends QueryResultRow>(
 export async function insertSql<T extends QueryResultRow>(
     sql: string,
     params: Array<any> = [],
-    client?: PoolClient
+    client?: PoolClient,
 ): Promise<T | null> {
     sql = sql.endsWith(";")
         ? sql.slice(0, -1) + " RETURNING *;"
         : sql + " RETURNING *;";
-    const result = await (client ? client.query<T>(sql, params) : pool.query<T>(sql, params));
+    const result = await (client
+        ? client.query<T>(sql, params)
+        : pool.query<T>(sql, params));
     return result.rows[0] ?? null;
 }

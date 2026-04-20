@@ -1,13 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError, MultiAppErrors } from "../log/errors/ApiError.js";
 import { failure, singleError } from "../utils/responseHelpers.js";
+import { logError, logInfo } from "../log/logger.js";
 
-export function globalErrorHandling(
+export async function globalErrorHandling(
     err: Error,
     _: Request,
     res: Response,
     __: NextFunction,
 ) {
+    await logError(err);
     if (err instanceof AppError) {
         return res
             .status(err.HTTPCode)
@@ -17,8 +19,7 @@ export function globalErrorHandling(
     if (err instanceof MultiAppErrors)
         return res.status(err.HTTPCode).json(failure(err.errors));
 
-    console.log("Error not instance of common AppError or MultiAppErrors:");
-    console.log(err);
+    await logInfo("Error not instance of common AppError or MultiAppErrors");
     return res
         .status(500)
         .json(singleError("Internal server error", "API_SERVER_ERROR"));

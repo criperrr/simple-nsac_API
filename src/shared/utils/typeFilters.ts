@@ -132,19 +132,16 @@ export function checkStringFilters(
             const splitValues = [
                 removerAcentos(value).toLocaleLowerCase(),
             ].flat(Infinity);
-            console.log(splitValues);
             const flatValues = splitValues
                 .map((val) =>
                     typeof val === "string" ? val.trim().split(",") : val,
                 )
                 .flat(Infinity);
-            console.log(flatValues);
             return flatValues.map((val) => {
                 return { [key]: val };
             });
         })
         .flat(Infinity) as StringFilter[];
-    console.log(flattenedFilters);
 
     return flattenedFilters.some((filter) => stringFilter(value, filter));
 }

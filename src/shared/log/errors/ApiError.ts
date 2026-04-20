@@ -1,11 +1,16 @@
-import { ApiError } from "../types/api.js";
+import { ApiError } from "../../types/api.js";
 
 export class AppError extends Error {
     public readonly HTTPCode: number;
     public readonly field?: string | undefined;
     public readonly errorCode: string;
 
-    constructor(message: string, HTTPCode: number, errorCode: string, field?: string) {
+    constructor(
+        message: string,
+        HTTPCode: number,
+        errorCode: string,
+        field?: string,
+    ) {
         super(message);
         this.HTTPCode = HTTPCode;
         this.field = field;
@@ -15,9 +20,11 @@ export class AppError extends Error {
 }
 
 export class InternalError extends AppError {
-    constructor(debug?: string){
-        console.log(debug);
-        super('Internal App Error', 500, 'INTERNAL_APP_ERROR');
+    public readonly debug?: string | undefined;
+
+    constructor(debug?: string) {
+        super("Internal App Error", 500, "INTERNAL_APP_ERROR");
+        this.debug = debug || undefined;
         Object.setPrototypeOf(this, InternalError.prototype);
     }
 }

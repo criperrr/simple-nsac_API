@@ -1,5 +1,6 @@
 import { Account } from "../accounts/account.dto.js";
 import { getGrades } from "../../providers/getGrades.js";
+import { logInfo } from "../../../../shared/log/logger.js";
 import {
     createSchoolYear,
     createSubject,
@@ -17,7 +18,7 @@ export async function insertScrappingData(
 ): Promise<void> {
     const scraperResponse = await getGrades(authToken);
     const yearsData = scraperResponse.data;
-    console.log("Starting data insertion for user:", user.id_user);
+    await logInfo(`Starting data insertion for user: ${user.id_user}`);
     const startTime = Date.now();
 
     const client = await pool.connect();
@@ -111,10 +112,10 @@ export async function insertScrappingData(
         }
         await Promise.all(promisesArr);
         const endTime = Date.now();
-        console.log(
+        await logInfo(
             `Data insertion completed for user: ${user.id_user} in ${
                 (endTime - startTime) / 1000
-            } seconds.`,
+            } seconds`,
         );
 
         await client.query("COMMIT");

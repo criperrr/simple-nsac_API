@@ -3,6 +3,7 @@ import cors from "cors";
 import { globalErrorHandling } from "./shared/middlewares/errorHandler.js";
 import nsacRoutes from "./modules/nsac-scrapping/nsac.routes.js";
 
+
 const app = express();
 
 app.use(express.json());

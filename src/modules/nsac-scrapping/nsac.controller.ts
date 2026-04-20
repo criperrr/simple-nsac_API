@@ -12,9 +12,8 @@ import { verifyCookie } from "./providers/verifyCookie.js";
 import { success } from "../../shared/utils/responseHelpers.js";
 import { generateRandomString } from "../../shared/utils/crypto.js";
 import { createApiToken } from "./models/apitokens/apitokens.repository.js";
-import {
-    insertScrappingData,
-} from "./models/grades/grade.service.js";
+import { insertScrappingData } from "./models/grades/grade.service.js";
+import { logInfo } from "../../shared/log/logger.js";
 
 export async function getNsacGrades(
     req: Request<{}, {}, { apiToken: string }>,
@@ -67,6 +66,9 @@ export async function createAccount(
                 "email",
             );
 
+        const startTime = Date.now();
+        await logInfo(`Creating account for email: ${email}`);
+
         const nsacLogin = await login(email, pass);
         let userResult;
         if (cookies) {
@@ -95,7 +97,10 @@ export async function createAccount(
         res.status(200).json(success({ user: returnedUser, apiToken }));
 
         await insertScrappingData(userResult, nsacLogin);
-
+        const endTime = Date.now();
+        await logInfo(
+            `Account creation and data insertion completed for email: ${email} in ${(endTime - startTime) / 1000} seconds`,
+        );
         return;
     } catch (e) {
         next(e);
