@@ -9,10 +9,17 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD || "",
 });
 
-
 const creationQueries = `
+CREATE TABLE IF NOT EXISTS SchoolYears (
+    id_year               SERIAL PRIMARY KEY,
+    year                  SMALLINT     NOT NULL,
+    title                 TEXT        NOT NULL,
+    
+    UNIQUE(title, year)
+);
+
 CREATE TABLE IF NOT EXISTS Accounts (
-    user_id       SERIAL PRIMARY KEY,
+    id_user       SERIAL PRIMARY KEY,
     nsac_email    TEXT        NOT NULL UNIQUE,
     nsac_hash_pass TEXT,
     nsac_pass TEXT       NOT NULL,
@@ -21,22 +28,39 @@ CREATE TABLE IF NOT EXISTS Accounts (
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS Accounts_SchoolYears ( 
+	id_association SERIAL PRIMARY KEY,
+	id_user       INTEGER NOT NULL,
+    id_year       INTEGER NOT NULL,
+	status                TEXT        NOT NULL,
+	FOREIGN KEY (id_user) REFERENCES Accounts(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_year) REFERENCES SchoolYears(id_year) ON DELETE CASCADE,
+	UNIQUE(id_user, id_year)
+);
+
 CREATE TABLE IF NOT EXISTS ApiTokens (
     id_token SERIAL PRIMARY KEY,
     id_user  INTEGER     NOT NULL,
     token    TEXT        NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY (id_user) REFERENCES Accounts(user_id) ON DELETE CASCADE
+    FOREIGN KEY (id_user) REFERENCES Accounts(id_user) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS SchoolYears (
-    id_year               SERIAL PRIMARY KEY,
-    id_user               INTEGER     NOT NULL,
-    year                  INTEGER     NOT NULL,
-    status                TEXT        NOT NULL,
-    title                 TEXT        NOT NULL,
-    FOREIGN KEY (id_user) REFERENCES Accounts(user_id) ON DELETE CASCADE,
-    UNIQUE(id_user, year)
+CREATE TABLE IF NOT EXISTS Bimesters(
+    id_bimester SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL,
+    id_year INTEGER NOT NULL,
+    bimester SMALLINT NOT NULL,
+    userAvarage NUMERIC(5,2) NOT NULL,
+    classAvarage NUMERIC(5,2) NOT NULL,
+    totalAbsences SMALLINT NOT NULL,
+
+
+    FOREIGN KEY(id_user) REFERENCES Accounts(id_user) ON DELETE CASCADE,
+    FOREIGN KEY(id_year) REFERENCES SchoolYears(id_year) ON DELETE CASCADE,
+
+    UNIQUE (id_bimester, id_user, id_year)
+    
 );
 
 CREATE TABLE IF NOT EXISTS Subjects (
@@ -52,18 +76,31 @@ CREATE TABLE IF NOT EXISTS Grades (
     id_grade    SERIAL PRIMARY KEY,
     id_user     INTEGER     NOT NULL,
     id_subject  INTEGER     NOT NULL,
-    bimester    SMALLINT    NOT NULL CHECK (bimester BETWEEN 1 AND 4),
-    grade       NUMERIC(5,2),
-    averageGrade NUMERIC(5,2),
+	id_bimester INTEGER     NOT NULL,
+    grade       NUMERIC(5,1) NOT NULL,
+    averageGrade NUMERIC(5,1) NOT NULL,
+    absences SMALLINT NOT NULL,
     statusRec   status_rec              DEFAULT 'NAC',
     recMessage  recovery_message_status DEFAULT 'Não aconteceu',
     approved    BOOLEAN                 DEFAULT TRUE,
     recovered   BOOLEAN                 DEFAULT NULL,
-    FOREIGN KEY (id_user)    REFERENCES Accounts(user_id)    ON DELETE CASCADE,
+    FOREIGN KEY (id_user)    REFERENCES Accounts(id_user)    ON DELETE CASCADE,
     FOREIGN KEY (id_subject) REFERENCES Subjects(id_subject) ON DELETE CASCADE,
-    UNIQUE(id_user, id_subject, bimester)
-);`
+    UNIQUE(id_user, id_subject, id_bimester)
+);
 
+CREATE TABLE IF NOT EXISTS SubjectFinalResults (
+    id_result     SERIAL PRIMARY KEY,
+    id_user       INTEGER NOT NULL,
+    id_subject    INTEGER NOT NULL,
+    final_grade   NUMERIC(5,1),
+    total_absences SMALLINT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (id_user)    REFERENCES Accounts(id_user)    ON DELETE CASCADE,
+    FOREIGN KEY (id_subject) REFERENCES Subjects(id_subject) ON DELETE CASCADE,
+    UNIQUE(id_user, id_subject)
+);
+`;
 
 export async function ensureDatabase() {
     try {
@@ -115,6 +152,9 @@ export async function insertSql<T extends QueryResultRow>(
     sql: string,
     params: Array<any> = [],
 ): Promise<T | null> {
+    sql = sql.endsWith(";")
+        ? sql.slice(0, -1) + " RETURNING *;"
+        : sql + " RETURNING *;";
     const result = await pool.query<T>(sql, params);
     return result.rows[0] ?? null;
 }

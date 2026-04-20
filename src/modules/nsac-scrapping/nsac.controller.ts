@@ -1,24 +1,29 @@
 import { NextFunction, Request, Response } from "express";
-import { CreateAccountDTO, Account } from "../accounts/account.dto.js";
+import { CreateAccountDTO, Account } from "./models/accounts/account.dto.js";
 import verifyEmptyFields from "../../shared/utils/emptyFields.js";
-import { createUser, getUserByEmail, getUserByToken } from "../accounts/account.repository.js";
-import { AppError } from "../../shared/errors/ApiError.js";
+import {
+    createUser,
+    getUserByEmail,
+    getUserByToken,
+} from "./models/accounts/account.repository.js";
+import { AppError, InternalError } from "../../shared/errors/ApiError.js";
 import { login } from "./providers/loginNsac.js";
 import { verifyCookie } from "./providers/verifyCookie.js";
 import { success } from "../../shared/utils/responseHelpers.js";
 import { generateRandomString } from "../../shared/utils/crypto.js";
-import { createApiToken } from "../apitokens/apitokens.repository.js";
-import { gradesDbToApi, insertScrappingData } from "../grades/grade.service.js";
-import { getGradesFromDb } from "../grades/grade.repository.js";
+import { createApiToken } from "./models/apitokens/apitokens.repository.js";
+import {
+    insertScrappingData,
+} from "./models/grades/grade.service.js";
 
 export async function getNsacGrades(
-    req: Request<{}, {}, { nsac_crypted_cookies: string }>,
+    req: Request<{}, {}, { apiToken: string }>,
     res: Response,
     next: NextFunction,
 ) {
-    const { nsac_crypted_cookies } = req.body;
+    const { apiToken } = req.body;
     try {
-        if (!nsac_crypted_cookies) {
+        if (!apiToken) {
             throw new AppError(
                 "Missing nsac_crypted_cookies in request body",
                 400,
@@ -27,7 +32,7 @@ export async function getNsacGrades(
             );
         }
 
-        const user = await getUserByToken(nsac_crypted_cookies);
+        const user = await getUserByToken(apiToken);
         if (!user) {
             throw new AppError(
                 "Invalid nsac_crypted_cookies token",
@@ -37,8 +42,7 @@ export async function getNsacGrades(
             );
         }
 
-        const grades = await getGradesFromDb(user.user_id);
-        const gradesResponse = gradesDbToApi(grades);
+        // const boletim = await getBoletimsByUser(user);
     } catch (e) {
         next(e);
     }
@@ -52,7 +56,6 @@ export async function createAccount(
     const cookies = req.body.nsac_crypted_cookies;
     const email = req.body.nsac_email;
     const pass = req.body.nsac_pass;
-    console.log(req.body);
     verifyEmptyFields({ email, pass });
 
     try {
@@ -67,24 +70,26 @@ export async function createAccount(
         const nsacLogin = await login(email, pass);
         let userResult;
         if (cookies) {
-            await verifyCookie(cookies);
+            await verifyCookie(cookies); // it launches expections when the cookie is invalid
         } else {
             req.body.nsac_crypted_cookies = nsacLogin;
         }
 
         userResult = await createUser(req.body);
         const returnedUser = {
-            user_id: userResult.user_id,
+            id_user: userResult.id_user,
             nsac_email: userResult.nsac_email,
             created_at: userResult.created_at,
         };
 
-        const apiToken = "nsac_active_" + generateRandomString(128, true);
+        const apiToken = "nsac_token_" + generateRandomString(128, true);
 
         const apiResult = await createApiToken({
-            id_user: userResult.user_id,
+            id_user: userResult.id_user,
             token: apiToken,
         });
+
+        if (!apiResult) throw new InternalError("result:\n " + apiResult);
 
         // return success and finish the request for client
         res.status(200).json(success({ user: returnedUser, apiToken }));

@@ -13,6 +13,7 @@ import {
     ClassBiInformation,
 } from "../nsac.types.js";
 import { AnyNode } from "domhandler";
+import { InternalError } from "../../../shared/errors/ApiError.js";
 interface BasicYearInfo {
     tittleLabel: string;
     parsedYear: number;
@@ -246,7 +247,7 @@ export async function getGrades(
                         if ((cellIndex + 1) % MAX_BIMESTERS === 0) {
                             // 4, 8, 12, 16 (bimestres 1, 2, 3, 4)
                             bimesterObj.push({
-                                bimester: currentBimester + 1,
+                                bimester: (currentBimester + 1) as 1 | 2 | 3 | 4,
                                 personal: { ...personalResults },
                                 class: { ...classResults },
                             });
@@ -257,13 +258,13 @@ export async function getGrades(
                                 $(cell).text(),
                             );
                             if (finalGrade === null)
-                                throw new Error("INVALID FINAL GRADE!");
+                                throw new InternalError("INVALID FINAL GRADE!\n DEBUG:\n " + $(cell).text());
                             resultDataObj.grade = finalGrade;
                         } else if (cellIndex == 17) {
                             const totalAbsences = Number($(cell).text().trim());
                             if (isNaN(totalAbsences))
-                                throw new Error(
-                                    "INVALID FINAL ABSENCES GRADE!",
+                                throw new InternalError(
+                                    "INVALID FINAL ABSENCES GRADE!\n DEBUG:\n " + $(cell).text(),
                                 );
                             resultDataObj.totalAbsences = totalAbsences;
                         }

@@ -10,7 +10,7 @@ if (!useServerless) {
     const port = process.env.PORT || 3000;
     app.listen(port, async () => {
         console.log(`RUNNING at http://localhost:${port}!`);
-        // await ensureDatabase(); 
+        await ensureDatabase(); 
     });
 }
 
