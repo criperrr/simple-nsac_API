@@ -1,4 +1,4 @@
-import { AppError } from "../../../shared/errors/ApiError.js";
+import { AppError } from "../../../shared/log/errors/ApiError.js";
 import { login } from "./loginNsac.js";
 
 export async function verifyCookie(

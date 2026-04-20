@@ -1,4 +1,4 @@
-import { AppError } from "../errors/ApiError.js";
+import { AppError } from "../log/errors/ApiError.js";
 import { BooleanFilter, NumberFilter, StringFilter } from "../types/filters.js";
 
 function removerAcentos(str: string): string {

@@ -6,7 +6,7 @@ import {
     getUserByEmail,
     getUserByToken,
 } from "./models/accounts/account.repository.js";
-import { AppError, InternalError } from "../../shared/errors/ApiError.js";
+import { AppError, InternalError } from "../../shared/log/errors/ApiError.js";
 import { login } from "./providers/loginNsac.js";
 import { verifyCookie } from "./providers/verifyCookie.js";
 import { success } from "../../shared/utils/responseHelpers.js";

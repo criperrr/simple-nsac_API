@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { AppError } from "../../../shared/errors/ApiError.js";
+import { AppError } from "../../../shared/log/errors/ApiError.js";
 
 interface Tokens {
     xsrf: string;

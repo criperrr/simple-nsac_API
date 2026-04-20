@@ -1,4 +1,4 @@
-import { MultiAppErrors } from "../errors/ApiError.js";
+import { MultiAppErrors } from "../../shared/log/errors/ApiError.js";
 
 export default function verifyEmptyFields(fields: Record<string, string>): void {
     let emptyFields: Array<string> = [];

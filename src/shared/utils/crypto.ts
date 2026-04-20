@@ -1,11 +1,13 @@
 import crypto from "crypto";
 const cryptoAlgorithm = "aes-256-cbc";
 import "dotenv/config";
-import { InternalError } from "../errors/ApiError.js";
+import { InternalError } from "../../shared/log/errors/ApiError.js";
+import bcrypt from "bcryptjs";
 
 const secret = process.env.ENCRYPTIONKEY as string;
 if (!secret) throw new Error("No key defined.");
 const key = Buffer.from(secret, "hex");
+const SALT_ROUNDS = 12;
 
 export function encrypt(message: string): string {
     const iv = crypto.randomBytes(16);
@@ -56,4 +58,10 @@ export function generateRandomString(
     return upperCase
         ? crypto.randomBytes(length).toString("hex").toUpperCase()
         : crypto.randomBytes(length).toString("hex");
+}
+
+
+export async function hashPassword(plainText: string): Promise<string> {
+    const salt = await bcrypt.genSalt(SALT_ROUNDS);
+    return await bcrypt.hash(plainText, salt);
 }

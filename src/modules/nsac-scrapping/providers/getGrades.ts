@@ -13,7 +13,7 @@ import {
     ClassBiInformation,
 } from "../nsac.types.js";
 import { AnyNode } from "domhandler";
-import { InternalError } from "../../../shared/errors/ApiError.js";
+import { InternalError } from "../../../shared/log/errors/ApiError.js";
 interface BasicYearInfo {
     tittleLabel: string;
     parsedYear: number;
