@@ -12,7 +12,7 @@ import { verifyCookie } from "./providers/verifyCookie.js";
 import { success } from "../../shared/utils/responseHelpers.js";
 import { generateRandomString } from "../../shared/utils/crypto.js";
 import { createApiToken } from "./models/apitokens/apitokens.repository.js";
-import { insertScrappingData } from "./models/grades/grade.service.js";
+import { fetchUserGrades, insertScrappingData } from "./models/grades/grade.service.js";
 import { logInfo } from "../../shared/log/logger.js";
 
 export async function getNsacGrades(
@@ -41,7 +41,9 @@ export async function getNsacGrades(
             );
         }
 
-        // const boletim = await getBoletimsByUser(user);
+        const boletim = await fetchUserGrades(user);
+
+        res.status(200).json(success(boletim));
     } catch (e) {
         next(e);
     }

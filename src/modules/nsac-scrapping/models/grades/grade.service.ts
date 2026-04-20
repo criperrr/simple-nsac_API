@@ -130,3 +130,108 @@ export async function insertScrappingData(
         client.release();
     }
 }
+
+
+import { getBoletimDataRowsByUser } from "./grade.repository.js";
+import {
+    AllYearsResponse,
+    YearInfo,
+    UnifiedBimesterData,
+    BimesterData,
+    PersonalBiInformation,
+} from "../../nsac.types.js";
+
+export async function fetchUserGrades(user: Account): Promise<AllYearsResponse> {
+    await logInfo(`Fetching parsed scraping data for user: ${user.id_user}`);
+
+    const rows = await getBoletimDataRowsByUser(user.id_user);
+
+    const yearsMap = new Map<number, YearInfo>();
+    const bimestersMetricsMap = new Map<number, Map<number, BimesterData>>();
+    let userCurrentYear = 0;
+
+    for (const row of rows) {
+        if (row.year > userCurrentYear) userCurrentYear = row.year;
+
+        if (!yearsMap.has(row.year)) {
+            yearsMap.set(row.year, {
+                title: row.title,
+                year: row.year,
+                status: row.status,
+                grades: [],
+                bimestersMetrics: []
+            });
+            bimestersMetricsMap.set(row.year, new Map<number, BimesterData>());
+        }
+
+        const currentYearInfo = yearsMap.get(row.year)!;
+        const currentYearMetrics = bimestersMetricsMap.get(row.year)!;
+
+        // 3. Extrai as métricas gerais do bimestre (executa 1 vez por bimestre/ano)
+        if (!currentYearMetrics.has(row.bimester) && row.userAverage != null) {
+            currentYearMetrics.set(row.bimester, {
+                userAverage: Number(row.userAverage),
+                classAverage: Number(row.classAverage),
+                totalAbsences: Number(row.bimesterTotalAbsences)
+            });
+        }
+
+        // 4. Agrupa a matéria dentro do ano
+        let subjectEntry = currentYearInfo.grades.find(g => g.subjectName === row.subjectName);
+        if (!subjectEntry) {
+            subjectEntry = {
+                subjectName: row.subjectName,
+                results: {
+                    grade: Number(row.final_grade) || 0,
+                    totalAbsences: Number(row.subject_total_absences) || 0
+                },
+                bimesters: []
+            };
+            currentYearInfo.grades.push(subjectEntry);
+        }
+
+        // 5. Mapeia a nota do respectivo bimestre
+        const bimesterData: UnifiedBimesterData = {
+            bimester: row.bimester as 1 | 2 | 3 | 4,
+            personal: {
+                grade: Number(row.grade),
+                absences: Number(row.absences),
+                recovery: row.statusRec !== "NAC",
+                recovered: row.recovered ?? undefined,
+                recoveryCode: row.statusRec,
+                recoveryMessage: row.recMessage
+            } as PersonalBiInformation,
+            class: {
+                averageGrade: Number(row.averageGrade)
+            }
+        };
+
+        subjectEntry.bimesters.push(bimesterData);
+    }
+
+    // 6. Finaliza a montagem da estrutura mapeada e garante a ordenação
+    const data: YearInfo[] = Array.from(yearsMap.values()).map(yearInfo => {
+        const metricsMap = bimestersMetricsMap.get(yearInfo.year)!;
+        
+        // Converte as métricas do Map para Array ordenando pelas chaves (1º, 2º, 3º e 4º bimestre)
+        yearInfo.bimestersMetrics = Array.from(metricsMap.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(entry => entry[1]);
+
+        // Garante que as notas dos bimestres estejam cronológicas
+        yearInfo.grades.forEach(grade => {
+            grade.bimesters.sort((a, b) => a.bimester - b.bimester);
+        });
+
+        return yearInfo;
+    });
+
+    // Ordena os anos de forma decrescente (ano mais atual primeiro)
+    data.sort((a, b) => b.year - a.year);
+
+    return {
+        warning: false, 
+        userCurrentYear,
+        data
+    };
+}

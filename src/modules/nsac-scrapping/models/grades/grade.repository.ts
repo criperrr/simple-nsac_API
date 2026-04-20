@@ -149,6 +149,7 @@ export async function getGradesFromDb(
 export interface GradeBoletimRow extends Grade {
     subjectName: string;
     id_year: number;
+    bimester: number;
     year: number;
     title: string;
     status: string;
@@ -170,7 +171,7 @@ export async function getBoletimDataRowsByUser(
             g.id_grade,
             g.id_user,
             g.id_subject,
-            g.bimester,
+            g.id_bimester,
             g.grade,
             g.averageGrade,
             g.absences,
@@ -182,19 +183,21 @@ export async function getBoletimDataRowsByUser(
             s.id_year,
             sy.year,
             sy.title,
-            sy.status,
+            asy.status,
             b.userAvarage AS "userAverage",
             b.classAvarage AS "classAverage",
+            b.bimester,
             b.totalAbsences AS "bimesterTotalAbsences",
             sfr.final_grade AS "final_grade",
             sfr.total_absences AS "subject_total_absences"
         FROM Grades g
         JOIN Subjects s ON g.id_subject = s.id_subject
         JOIN SchoolYears sy ON s.id_year = sy.id_year
-        LEFT JOIN Bimesters b ON g.id_user = b.id_user AND s.id_year = b.id_year AND g.bimester = b.bimester
+        JOIN Accounts_SchoolYears asy ON asy.id_year = sy.id_year AND asy.id_user = g.id_user
+        LEFT JOIN Bimesters b ON g.id_bimester = b.id_bimester
         LEFT JOIN SubjectFinalResults sfr ON g.id_user = sfr.id_user AND g.id_subject = sfr.id_subject
         WHERE g.id_user = $1
-        ORDER BY sy.year, s.name, g.bimester;
+        ORDER BY sy.year DESC, s.name ASC, b.bimester ASC;
         `,
         [userId],
         client,
