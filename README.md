@@ -1,6 +1,6 @@
 implementation https://github.com/criperrr/pf-API with a database caching system and auto internal update
 
-the auto refresh hopefuly one day will be based on heuristic statistics
+the auto refresh hopefuly one day will be based on heuristic statistics 
 
 create an account in
 ```http
